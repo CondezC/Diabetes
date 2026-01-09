@@ -134,10 +134,507 @@
         </div>
     </div>
     
-    <script src="script.js"></script>
+    <!-- INLINE JAVASCRIPT FOR RELIABILITY -->
     <script>
         // Set current year in footer
         document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initDiabetesAssessment();
+            
+            // Focus on first input
+            setTimeout(() => {
+                document.getElementById('age').focus();
+            }, 500);
+        });
+        
+        function initDiabetesAssessment() {
+            const form = document.getElementById('diabetesForm');
+            
+            // Initialize real-time validation
+            initializeInputValidation();
+            
+            // Handle form submission
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                calculateDiabetesRisk();
+            });
+        }
+        
+        function initializeInputValidation() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    validateAndStyleInput(this);
+                    showInputHint(this);
+                });
+                
+                input.addEventListener('blur', function() {
+                    showInputHint(this);
+                });
+                
+                input.addEventListener('focus', function() {
+                    this.select();
+                    hideInputHint(this);
+                });
+            });
+        }
+        
+        function validateAndStyleInput(input) {
+            const value = parseFloat(input.value);
+            const id = input.id;
+            
+            // Clear previous styles
+            input.classList.remove('input-low', 'input-normal', 'input-high', 'input-error');
+            
+            if (isNaN(value)) return;
+            
+            // Apply color coding based on value ranges
+            if (id === 'age') {
+                if (value >= 45) {
+                    input.classList.add('input-high');
+                } else if (value >= 35) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            } else if (id === 'weight') {
+                if (value >= 90) {
+                    input.classList.add('input-high');
+                } else if (value >= 70) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            } else if (id === 'bmi') {
+                if (value >= 30) {
+                    input.classList.add('input-high');
+                } else if (value >= 25) {
+                    input.classList.add('input-high');
+                } else if (value >= 18.5) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            } else if (id === 'systolic') {
+                if (value >= 140) {
+                    input.classList.add('input-high');
+                } else if (value >= 130) {
+                    input.classList.add('input-normal');
+                } else if (value >= 120) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            } else if (id === 'diastolic') {
+                if (value >= 90) {
+                    input.classList.add('input-high');
+                } else if (value >= 85) {
+                    input.classList.add('input-normal');
+                } else if (value >= 80) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            } else if (id === 'glucose') {
+                if (value >= 126) {
+                    input.classList.add('input-high');
+                } else if (value >= 100) {
+                    input.classList.add('input-high');
+                } else if (value >= 70) {
+                    input.classList.add('input-normal');
+                } else {
+                    input.classList.add('input-low');
+                }
+            }
+        }
+        
+        function showInputHint(input) {
+            const value = parseFloat(input.value);
+            const id = input.id;
+            
+            if (isNaN(value)) {
+                hideInputHint(input);
+                return;
+            }
+            
+            let hintText = '';
+            
+            switch(id) {
+                case 'age':
+                    if (value >= 45) hintText = 'Higher risk age group';
+                    else if (value >= 35) hintText = 'Moderate risk age group';
+                    else hintText = 'Lower risk age group';
+                    break;
+                    
+                case 'weight':
+                    if (value >= 90) hintText = 'High weight - increased risk';
+                    else if (value >= 70) hintText = 'Normal weight range';
+                    else hintText = 'Low weight';
+                    break;
+                    
+                case 'bmi':
+                    if (value >= 30) hintText = 'Obese - high risk';
+                    else if (value >= 25) hintText = 'Overweight - increased risk';
+                    else if (value >= 18.5) hintText = 'Normal weight';
+                    else hintText = 'Underweight';
+                    break;
+                    
+                case 'systolic':
+                    if (value >= 140) hintText = 'Stage 2 Hypertension';
+                    else if (value >= 130) hintText = 'Stage 1 Hypertension';
+                    else if (value >= 120) hintText = 'Elevated';
+                    else hintText = 'Normal';
+                    break;
+                    
+                case 'diastolic':
+                    if (value >= 90) hintText = 'Stage 2 Hypertension';
+                    else if (value >= 85) hintText = 'Stage 1 Hypertension';
+                    else if (value >= 80) hintText = 'Elevated';
+                    else hintText = 'Normal';
+                    break;
+                    
+                case 'glucose':
+                    if (value >= 126) hintText = 'Diabetes range';
+                    else if (value >= 100) hintText = 'Prediabetes range';
+                    else if (value >= 70) hintText = 'Normal glucose level';
+                    else hintText = 'Low glucose level';
+                    break;
+            }
+            
+            // Create or update hint element
+            let hintElement = input.parentNode.querySelector('.real-time-hint');
+            if (!hintElement) {
+                hintElement = document.createElement('div');
+                hintElement.className = 'real-time-hint';
+                input.parentNode.appendChild(hintElement);
+            }
+            
+            hintElement.textContent = hintText;
+            hintElement.style.display = 'block';
+        }
+        
+        function hideInputHint(input) {
+            const hintElement = input.parentNode.querySelector('.real-time-hint');
+            if (hintElement) {
+                hintElement.style.display = 'none';
+            }
+        }
+        
+        function calculateDiabetesRisk() {
+            // Get form values
+            const age = parseFloat(document.getElementById('age').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const bmi = parseFloat(document.getElementById('bmi').value);
+            const systolic = parseFloat(document.getElementById('systolic').value);
+            const diastolic = parseFloat(document.getElementById('diastolic').value);
+            const glucose = parseFloat(document.getElementById('glucose').value);
+            
+            // Validate inputs
+            const errors = validateInputs(age, weight, bmi, systolic, diastolic, glucose);
+            
+            if (errors.length > 0) {
+                showErrors(errors);
+                return;
+            }
+            
+            // Remove any existing error messages
+            hideErrors();
+            
+            // Calculate risk score
+            const riskResult = calculateRiskScore(age, weight, bmi, systolic, diastolic, glucose);
+            
+            // Display results
+            displayResults(riskResult, age, weight, bmi, systolic, diastolic, glucose);
+            
+            // Scroll to results
+            setTimeout(() => {
+                document.getElementById('resultContainer').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }, 100);
+        }
+        
+        function validateInputs(age, weight, bmi, systolic, diastolic, glucose) {
+            const errors = [];
+            
+            if (isNaN(age) || age <= 0 || age > 120) errors.push("Age must be between 1-120 years");
+            if (isNaN(weight) || weight <= 0 || weight > 300) errors.push("Weight must be between 1-300 kg");
+            if (isNaN(bmi) || bmi <= 0 || bmi > 60) errors.push("BMI must be between 1-60");
+            if (isNaN(systolic) || systolic <= 0 || systolic > 250) errors.push("Systolic BP must be between 70-250 mmHg");
+            if (isNaN(diastolic) || diastolic <= 0 || diastolic > 150) errors.push("Diastolic BP must be between 40-150 mmHg");
+            if (isNaN(glucose) || glucose <= 0 || glucose > 500) errors.push("Glucose level must be between 50-500 mg/dL");
+            
+            return errors;
+        }
+        
+        function calculateRiskScore(age, weight, bmi, systolic, diastolic, glucose) {
+            let riskScore = 0;
+            let riskFactors = [];
+            
+            // Age risk factor
+            if (age >= 45) { 
+                riskScore += 1.5; 
+                riskFactors.push("Age 45 or above"); 
+            } else if (age >= 35) {
+                riskScore += 0.5;
+            }
+            
+            // BMI risk factor
+            if (bmi >= 30) { 
+                riskScore += 2; 
+                riskFactors.push("High BMI (≥30)"); 
+            } else if (bmi >= 25) {
+                riskScore += 1;
+                riskFactors.push("Overweight (BMI 25-29.9)");
+            }
+            
+            // Blood Pressure risk factor
+            if (systolic >= 140 || diastolic >= 90) {
+                riskScore += 1.5;
+                riskFactors.push("Hypertension (≥140/90 mmHg)");
+            } else if (systolic >= 130 || diastolic >= 85) {
+                riskScore += 0.5;
+            }
+            
+            // Glucose risk factor
+            if (glucose >= 126) { 
+                riskScore += 2.5; 
+                riskFactors.push("Elevated glucose (≥126 mg/dL)"); 
+            } else if (glucose >= 100) {
+                riskScore += 1;
+                riskFactors.push("Prediabetes range (100-125 mg/dL)");
+            }
+            
+            // Weight risk factor (additional)
+            if (weight >= 90) {
+                riskScore += 0.5;
+            }
+            
+            // Determine risk level based on total score
+            let riskLevel, title, icon, message, recommendations;
+            
+            if (riskScore >= 5) {
+                riskLevel = "high";
+                title = "High Risk Detected";
+                icon = "fas fa-exclamation-triangle";
+                message = "Based on your health indicators, you have a high risk for developing diabetes. Immediate consultation with a healthcare provider is recommended.";
+                recommendations = [
+                    "Schedule an appointment with your doctor immediately",
+                    "Request comprehensive blood tests (HbA1c, lipid profile)",
+                    "Adopt a strict diabetic-friendly diet",
+                    "Begin regular exercise program (30 min/day, 5 days/week)",
+                    "Monitor blood glucose and blood pressure daily",
+                    "Consider weight management program",
+                    "Avoid smoking and limit alcohol consumption"
+                ];
+            } else if (riskScore >= 3) {
+                riskLevel = "moderate-high";
+                title = "Moderate to High Risk";
+                icon = "fas fa-exclamation-circle";
+                message = "You have multiple risk factors for diabetes. Preventive measures and lifestyle changes are strongly recommended.";
+                recommendations = [
+                    "Consult with a healthcare provider within the next month",
+                    "Get fasting blood glucose and HbA1c tests",
+                    "Start a balanced diet with controlled carbohydrates",
+                    "Begin regular physical activity (150 min/week)",
+                    "Monitor your weight and BMI monthly",
+                    "Check blood pressure regularly",
+                    "Reduce stress through relaxation techniques"
+                ];
+            } else if (riskScore >= 1.5) {
+                riskLevel = "moderate";
+                title = "Moderate Risk";
+                icon = "fas fa-info-circle";
+                message = "You have some risk factors for diabetes. Maintaining a healthy lifestyle is important for prevention.";
+                recommendations = [
+                    "Schedule a routine health check-up",
+                    "Maintain healthy weight through balanced diet",
+                    "Exercise regularly (at least 30 min most days)",
+                    "Monitor blood glucose annually",
+                    "Eat more fruits, vegetables, and whole grains",
+                    "Limit processed foods and sugary drinks",
+                    "Get adequate sleep (7-8 hours nightly)"
+                ];
+            } else {
+                riskLevel = "low";
+                title = "Low Risk";
+                icon = "fas fa-check-circle";
+                message = "Based on your current health indicators, you have a low risk for diabetes. Continue maintaining healthy habits.";
+                recommendations = [
+                    "Continue with your healthy lifestyle",
+                    "Maintain regular physical activity",
+                    "Eat a balanced, nutritious diet",
+                    "Get annual health screenings",
+                    "Stay hydrated with water",
+                    "Manage stress effectively",
+                    "Maintain healthy weight range"
+                ];
+            }
+            
+            return {
+                score: riskScore,
+                factors: riskFactors,
+                level: riskLevel,
+                title: title,
+                message: message,
+                icon: icon,
+                recommendations: recommendations
+            };
+        }
+        
+        function displayResults(riskResult, age, weight, bmi, systolic, diastolic, glucose) {
+            const resultContainer = document.getElementById('resultContainer');
+            
+            // Clear previous results
+            resultContainer.innerHTML = '';
+            
+            // Build recommendations HTML
+            const recommendationsHTML = riskResult.recommendations.map(rec => 
+                `<li><i class="fas fa-check"></i> ${rec}</li>`
+            ).join('');
+            
+            // Create result HTML
+            const resultHTML = `
+                <div class="result-container ${riskResult.level}-risk">
+                    <div class="result-header">
+                        <div class="result-icon">
+                            <i class="${riskResult.icon}"></i>
+                        </div>
+                        <h2>${riskResult.title}</h2>
+                        <p class="risk-score">Risk Score: ${riskResult.score.toFixed(1)}/8</p>
+                    </div>
+                    
+                    <div class="result-body">
+                        <p class="result-message">${riskResult.message}</p>
+                        
+                        <div class="health-summary">
+                            <h3><i class="fas fa-clipboard-list"></i> Your Health Summary</h3>
+                            <div class="summary-grid">
+                                <div class="summary-item">
+                                    <span class="summary-label">Age:</span>
+                                    <span class="summary-value">${age} years</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Weight:</span>
+                                    <span class="summary-value">${weight} kg</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">BMI:</span>
+                                    <span class="summary-value">${bmi} kg/m²</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Blood Pressure:</span>
+                                    <span class="summary-value">${systolic}/${diastolic} mmHg</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Glucose:</span>
+                                    <span class="summary-value">${glucose} mg/dL</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="risk-details">
+                            <h3><i class="fas fa-chart-line"></i> Risk Assessment Details</h3>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Risk Level:</span>
+                                    <span class="detail-value ${riskResult.level}">${riskResult.level.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Risk</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Identified Factors:</span>
+                                    <span class="detail-value">${riskResult.factors.length > 0 ? riskResult.factors.join(', ') : 'No significant risk factors identified'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendations">
+                            <h3><i class="fas fa-lightbulb"></i> Personalized Recommendations</h3>
+                            <ul>${recommendationsHTML}</ul>
+                        </div>
+                        
+                        <div class="result-actions">
+                            <button type="button" class="new-assessment-btn" onclick="clearForm()">
+                                <i class="fas fa-redo"></i> New Assessment
+                            </button>
+                            <button class="btn-secondary" onclick="window.print()">
+                                <i class="fas fa-print"></i> Print Results
+                            </button>
+                        </div>
+                        
+                        <div class="disclaimer-note">
+                            <p><i class="fas fa-exclamation-circle"></i> <strong>Important:</strong> This assessment is for informational purposes only. Always consult with a healthcare professional for accurate diagnosis and treatment.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert result
+            resultContainer.innerHTML = resultHTML;
+        }
+        
+        function showErrors(errors) {
+            const form = document.getElementById('diabetesForm');
+            
+            // Remove existing error messages
+            hideErrors();
+            
+            // Create error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <h3><i class="fas fa-exclamation-triangle"></i> Please correct the following:</h3>
+                <ul>
+                    ${errors.map(error => `<li>${error}</li>`).join('')}
+                </ul>
+            `;
+            
+            // Insert error message after form
+            form.insertAdjacentElement('afterend', errorDiv);
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function hideErrors() {
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(error => error.remove());
+        }
+        
+        // Clear form function for New Assessment button
+        window.clearForm = function() {
+            const form = document.getElementById('diabetesForm');
+            if (form) {
+                form.reset();
+                
+                // Remove result container
+                const resultContainer = document.getElementById('resultContainer');
+                if (resultContainer) {
+                    resultContainer.innerHTML = '';
+                }
+                
+                // Remove error messages
+                hideErrors();
+                
+                // Remove input styling
+                const inputs = document.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.classList.remove('input-low', 'input-normal', 'input-high', 'input-error');
+                    hideInputHint(input);
+                });
+                
+                // Scroll to form
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Focus on first input
+                setTimeout(() => {
+                    document.getElementById('age').focus();
+                }, 500);
+            }
+        };
     </script>
 </body>
 </html>
